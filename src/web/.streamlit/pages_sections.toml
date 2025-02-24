@@ -1,0 +1,61 @@
+[[pages]]
+name = "Home"
+icon = "🏠"
+is_section = true
+
+[[pages]]
+name = "Introduction"
+icon = "👋"
+path = "Home.py"
+url_path = "introduction"
+
+[[pages]]
+name = "Architecture"
+icon = "🏗️"
+path = "Architecture.py"
+url_path = "architecture"
+
+[[pages]]
+name = "Examples"
+icon = "📕"
+is_section = true
+
+[[pages]]
+name = "Complaints Preprocessing"
+icon = "📊"
+path = "Complaints_Preprocessing.py"
+url_path = "complaints_preprocessing"
+
+[[pages]]
+name = "Customer Complaints Dashboard"
+icon = "🚦️"
+path = "Customer_Complaints_Dashboard.py"
+url_path = "customer_complaints_dashboard"
+
+[[pages]]
+name = "More Information"
+icon = "🫥"
+is_section = true
+
+[[pages]]
+name = "Fine-Tuning vs. RAG"
+icon = "🧑🏻‍🔧"
+path = "Fine_Tuning_Vs_Rag.py"
+url_path = "fine_tuning_vs_rag"
+
+[[pages]]
+name = "Model Distillation"
+icon = "⚗️"
+path = "Model_Distillation.py"
+url_path = "model_distillation"
+
+[[pages]]
+name = "Options"
+icon = "🛠️"
+is_section = true
+
+[[pages]]
+name = "Settings"
+icon = "🤖"
+path = "Settings.py"
+url_path = "settings"
