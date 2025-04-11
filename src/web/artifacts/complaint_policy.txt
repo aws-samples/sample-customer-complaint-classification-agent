@@ -1,0 +1,5 @@
+Complaints fall under two main categories, actionable and non-actionable. For non-actionable complaints, the complaints are kept for a maximum of 3 years. If the complaint is actionable then it is further tiered into three distinct tiers. These tiers are in descending order of importance and priority with tier 3 being the least important and tier 1 being most important.
+
+- **Tier 3** complaints consist of aesthetic design choices which do not impact the experience for people with disability or accessibility concerns. The SLA Tier 3 of 60 days for acknowledgement but do not require contact with the customer.
+- **Tier** 2 consists of performance issues or failures which are not chronic or describe a situation which consists of both personal and technical challenges. The SLA for Tier 2 is 45 days, including acknowledgement and customer outreach.
+- **Tier 1** consists of chronic technical issues or aesthetic choices which impact customers with disabilities or accessibility concerns. The SLA for Tier 1 is 15 days, included acknowledgement and customer outreach.

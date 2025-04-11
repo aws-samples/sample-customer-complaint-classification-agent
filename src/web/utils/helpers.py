@@ -85,9 +85,8 @@ def converse(prompts: Prompts, model_settings: ModelSettings, runtime_client):
             messages = _messages
         )
 
-        _response_text = _response["output"]["message"]["content"][0]["text"]
-        _usage = _response["usage"]
-        return _response_text, _usage
+        _response_text = _response["output"]["message"]["content"][0]['text']
+        return _response_text
     except Exception as e:
         print(f"Error when conversing with {model_settings.model_id}: {str(e)}")
 

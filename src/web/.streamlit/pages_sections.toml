@@ -1,53 +1,31 @@
 [[pages]]
-name = "Home"
-icon = "🏠"
-is_section = true
-
-[[pages]]
 name = "Introduction"
 icon = "👋"
-path = "Home.py"
+path = "introduction.py"
 url_path = "introduction"
 
 [[pages]]
 name = "Architecture"
 icon = "🏗️"
-path = "Architecture.py"
+path = "architecture.py"
 url_path = "architecture"
 
 [[pages]]
-name = "Examples"
+name = "Demo"
 icon = "📕"
 is_section = true
 
 [[pages]]
-name = "Complaints Preprocessing"
+name = "Step 1 - Process Complaints"
+icon = "🔋"
+path = "process_complaints.py"
+url_path = "process_complaints"
+
+[[pages]]
+name = "Step 2 - View Complaints Dashboard"
 icon = "📊"
-path = "Complaints_Preprocessing.py"
-url_path = "complaints_preprocessing"
-
-[[pages]]
-name = "Customer Complaints Dashboard"
-icon = "🚦️"
-path = "Customer_Complaints_Dashboard.py"
-url_path = "customer_complaints_dashboard"
-
-[[pages]]
-name = "More Information"
-icon = "🫥"
-is_section = true
-
-[[pages]]
-name = "Fine-Tuning vs. RAG"
-icon = "🧑🏻‍🔧"
-path = "Fine_Tuning_Vs_Rag.py"
-url_path = "fine_tuning_vs_rag"
-
-[[pages]]
-name = "Model Distillation"
-icon = "⚗️"
-path = "Model_Distillation.py"
-url_path = "model_distillation"
+path = "view_complaints_dashboard.py"
+url_path = "view_complaints_dashboard"
 
 [[pages]]
 name = "Options"
@@ -55,7 +33,13 @@ icon = "🛠️"
 is_section = true
 
 [[pages]]
-name = "Settings"
+name = "Model Settings"
 icon = "🤖"
-path = "Settings.py"
+path = "settings.py"
 url_path = "settings"
+
+[[pages]]
+name = "Prompts"
+icon = "📌"
+path = "prompts.py"
+url_path = "prompts"

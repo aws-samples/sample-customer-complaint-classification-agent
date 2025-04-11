@@ -1,5 +1,30 @@
 import streamlit as st
+from utils.helpers import *
 
+bedrock_runtime_client, bedrock_service_client = bedrock_init()
+
+col1, col2 = st.columns(2)
+
+## Model Settings
+if "bedrock_runtime_client" not in st.session_state:
+    st.session_state.bedrock_runtime_client = bedrock_runtime_client
+
+if "bedrock_service_client" not in st.session_state:
+    st.session_state.bedrock_service_client = bedrock_service_client
+
+if "models" not in st.session_state:
+    st.session_state.models = []
+
+if "model_id" not in st.session_state:
+    st.session_state.model_id = "anthropic.claude-3-5-sonnet-20241022-v2:0"
+
+if "model_temperature" not in st.session_state:
+    st.session_state.model_temperature = 0.0
+
+if "top_p" not in st.session_state:
+    st.session_state.top_p = 0.0
+
+st.session_state.models = list_foundation_models(bedrock_service_client)
 
 # Header section
 st.title("📊 Financial Services Complaint Analysis with AI")
