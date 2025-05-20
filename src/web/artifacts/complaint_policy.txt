@@ -1,5 +1,78 @@
-Complaints fall under two main categories, actionable and non-actionable. For non-actionable complaints, the complaints are kept for a maximum of 3 years. If the complaint is actionable then it is further tiered into three distinct tiers. These tiers are in descending order of importance and priority with tier 3 being the least important and tier 1 being most important.
+Complaint Handling Guidelines
 
-- **Tier 3** complaints consist of aesthetic design choices which do not impact the experience for people with disability or accessibility concerns. The SLA Tier 3 of 60 days for acknowledgement but do not require contact with the customer.
-- **Tier** 2 consists of performance issues or failures which are not chronic or describe a situation which consists of both personal and technical challenges. The SLA for Tier 2 is 45 days, including acknowledgement and customer outreach.
-- **Tier 1** consists of chronic technical issues or aesthetic choices which impact customers with disabilities or accessibility concerns. The SLA for Tier 1 is 15 days, included acknowledgement and customer outreach.
+1. Complaint Categories
+   - Product/Service Quality Issues
+   - Customer Service Experience
+   - Technical Problems
+   - Billing/Financial Disputes
+   - Policy/Procedure Concerns
+   - Privacy/Security Issues
+
+2. Priority Levels
+   High Priority:
+   - Financial loss over $1,000
+   - Security breaches
+   - Service outages affecting multiple customers
+   - Regulatory compliance issues
+   - Escalated complaints from regulatory bodies
+
+   Medium Priority:
+   - Service disruptions affecting individual customers
+   - Billing disputes under $1,000
+   - Product functionality issues
+   - Unresolved customer service issues
+   - Account access problems
+
+   Low Priority:
+   - General feedback
+   - Minor inconveniences
+   - Documentation requests
+   - Feature requests
+   - Non-urgent clarifications
+
+3. Response Time Requirements
+   High Priority: Within 24 hours
+   Medium Priority: Within 3 business days
+   Low Priority: Within 5 business days
+
+4. Resolution Steps
+   a. Acknowledge receipt of complaint
+   b. Gather all relevant information
+   c. Investigate root cause
+   d. Document findings
+   e. Propose solution
+   f. Implement corrective actions
+   g. Follow up with customer
+   h. Record outcome
+
+5. Customer Communication Guidelines
+   - Be empathetic and professional
+   - Acknowledge the customer's concerns
+   - Provide clear explanations
+   - Set realistic expectations
+   - Keep customer informed of progress
+   - Document all communications
+
+6. Escalation Path
+   Level 1: Customer Service Representative
+   Level 2: Team Lead/Supervisor
+   Level 3: Department Manager
+   Level 4: Executive Team
+
+7. Documentation Requirements
+   - Customer details
+   - Complaint description
+   - Category and priority
+   - Investigation findings
+   - Actions taken
+   - Resolution details
+   - Customer feedback
+   - Follow-up actions
+
+8. Quality Assurance
+   - Regular review of complaint handling
+   - Customer satisfaction surveys
+   - Response time monitoring
+   - Resolution rate tracking
+   - Root cause analysis
+   - Process improvement recommendations

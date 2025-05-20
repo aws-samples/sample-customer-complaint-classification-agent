@@ -7,7 +7,7 @@ with col1:
     st.markdown("### 🤖 Model Settings")
     st.session_state.model_id = st.selectbox(
         label="Model",
-        placeholder="anthropic.claude-3-5-sonnet-20241022-v2:0",
+        placeholder="us.anthropic.claude-3-5-haiku-20241022-v1:0",
         options=st.session_state.models,
         index=None
     )

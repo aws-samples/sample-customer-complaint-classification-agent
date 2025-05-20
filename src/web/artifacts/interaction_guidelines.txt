@@ -1,0 +1,36 @@
+Customer Interaction Classification Guidelines
+
+1. Complaints
+    - Expressions of dissatisfaction about products, services, or experiences
+    - Issues involving potential financial loss or inconvenience
+    - Service failures or disruptions
+    - Disputes about fees or charges
+    - Reports of system issues or errors
+
+2. Feedback
+    - Positive comments about products, services, or staff
+    - Suggestions for improvements
+    - General observations about the banking experience
+    - Product or service reviews
+    - Constructive criticism without immediate issues
+
+3. Service Requests
+- Account maintenance tasks
+- Information inquiries
+- Product applications
+- Technical support needs
+- Documentation requests
+- Address or personal information updates
+
+4. Urgent Issues
+- Security concerns
+- Fraud reports
+- Immediate financial impact
+- System outages affecting multiple customers
+- Regulatory or legal threats
+
+Each interaction should be classified into one of these categories and routed to the appropriate team:
+- Complaints → Customer Resolution Team
+- Feedback → Product & Service Development
+- Service Requests → Customer Service Operations
+- Urgent Issues → Priority Response Team

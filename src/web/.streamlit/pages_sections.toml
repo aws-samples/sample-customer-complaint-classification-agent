@@ -16,13 +16,19 @@ icon = "📕"
 is_section = true
 
 [[pages]]
-name = "Step 1 - Process Complaints"
+name = "Step 1 - Process Interactions"
 icon = "🔋"
-path = "process_complaints.py"
+path = "process_interactions.py"
+url_path = "process_interactions"
+
+[[pages]]
+name = "Step 2 - Filter Complaints"
+icon = "↪️"
+path = "filter_complaints.py"
 url_path = "process_complaints"
 
 [[pages]]
-name = "Step 2 - View Complaints Dashboard"
+name = "Step 3 - View Complaints Dashboard"
 icon = "📊"
 path = "view_complaints_dashboard.py"
 url_path = "view_complaints_dashboard"

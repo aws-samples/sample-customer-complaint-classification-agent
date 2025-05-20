@@ -16,7 +16,7 @@ if "models" not in st.session_state:
     st.session_state.models = []
 
 if "model_id" not in st.session_state:
-    st.session_state.model_id = "anthropic.claude-3-5-sonnet-20241022-v2:0"
+    st.session_state.model_id = "us.anthropic.claude-3-5-haiku-20241022-v1:0"
 
 if "model_temperature" not in st.session_state:
     st.session_state.model_temperature = 0.0
@@ -42,7 +42,7 @@ uncover hidden trends and insights in customer feedback.
 col1, col2 = st.columns(2)
 
 with col1:
-    st.subheader("🎯 Why AI-Powered Complaint Analysis?")
+    st.subheader("🎯 Why GenAI Complaint Analysis?")
     st.info("""
     Traditional complaint analysis is like trying to find a needle in a haystack - 
     time-consuming and often missing crucial patterns. Our AI approach is more like 
