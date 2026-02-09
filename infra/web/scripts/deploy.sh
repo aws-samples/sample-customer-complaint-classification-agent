@@ -1,3 +1,0 @@
-#!/bin/bash
-
-# Will have contents, eventually...

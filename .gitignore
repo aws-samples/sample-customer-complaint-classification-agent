@@ -1,6 +1,34 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.egg-info/
+.eggs/
+dist/
+build/
+
+# Testing
+.pytest_cache/
+.hypothesis/
+
+# CDK
+cdk.out/
+
+# AgentCore build artifacts
+.bedrock_agentcore/agent/dependencies.zip
+.bedrock_agentcore/agent/dependencies.hash
+
+# IDE
+.vscode/
 .idea/
+*.swp
+
+# Environment
+.env
 .venv/
+venv/
+env/
 
-*.iml
-
+# OS
 .DS_Store
+Thumbs.db

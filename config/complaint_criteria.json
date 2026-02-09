@@ -1,0 +1,48 @@
+{
+    "keywords": [
+        "complaint",
+        "problem",
+        "issue",
+        "error",
+        "mistake",
+        "failed",
+        "failure",
+        "unauthorized",
+        "fraudulent",
+        "disputed",
+        "overcharged",
+        "overdraft",
+        "late fee",
+        "hidden fee",
+        "wrong balance",
+        "incorrect charge",
+        "declined",
+        "rejected",
+        "closing account",
+        "never again"
+    ],
+    "sentiment_indicators": [
+        "frustrated",
+        "angry",
+        "upset",
+        "furious",
+        "annoyed",
+        "dissatisfied",
+        "unhappy",
+        "disgusted",
+        "outraged",
+        "fed up",
+        "sick and tired",
+        "had enough",
+        "this is ridiculous",
+        "unbelievable",
+        "waste of time",
+        "losing money"
+    ],
+    "severity_thresholds": {
+        "low": 1,
+        "medium": 2,
+        "high": 3,
+        "critical": 5
+    }
+}
