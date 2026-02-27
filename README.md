@@ -49,13 +49,68 @@ Complaint classification criteria are defined in `config/complaint_criteria.json
 
 ## Deployment
 
-Infrastructure is defined using AWS CDK in the `infra/` directory. The stack provisions an IAM execution role for AgentCore deployment.
+Infrastructure is defined using AWS CDK in the `infra/` directory. The project includes two stacks:
+
+- **ComplaintsAgentCore**: Provisions IAM execution role for the supervisor agent
+- **ComplaintsAgentMCP**: Provisions IAM execution role for the standalone complaints agent MCP server
+
+### Prerequisites
+
+1. AWS CLI configured with appropriate credentials
+2. AWS CDK CLI installed (`npm install -g aws-cdk`)
+3. Bootstrap CDK in your account/region (if not already done):
+
+```bash
+cdk bootstrap aws://ACCOUNT_ID/REGION
+```
+
+### Install Infrastructure Dependencies
 
 ```bash
 python3 -m pip install -e ".[infra]"
-cd infra
-cdk deploy
 ```
+
+### Deploy Both Stacks
+
+```bash
+cd infra
+cdk deploy --all
+```
+
+### Deploy Individual Stacks
+
+Deploy only the supervisor agent stack:
+
+```bash
+cd infra
+cdk deploy ComplaintsAgentCore-dev
+```
+
+Deploy only the complaints agent MCP stack:
+
+```bash
+cd infra
+cdk deploy ComplaintsAgentMCP-dev
+```
+
+### Deployment Options
+
+Use CDK context variables to control deployment:
+
+```bash
+cdk deploy -c deploy_supervisor=false      # Skip supervisor stack
+cdk deploy -c deploy_complaints_mcp=false  # Skip MCP stack
+cdk deploy -c environment=prod             # Deploy to prod environment
+```
+
+### Stack Outputs
+
+After deployment, the stacks output:
+
+- **ExecutionRoleArn**: IAM role ARN for AgentCore
+- **ExecutionRoleName**: IAM role name
+- **Environment**: Deployment environment name
+- **AgentEndpoint** (MCP stack only): Placeholder endpoint URL
 
 ## Testing
 

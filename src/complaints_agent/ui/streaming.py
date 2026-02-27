@@ -1,12 +1,14 @@
 import json
 import os
 from datetime import datetime
-from typing import Any, Callable
+from typing import Any, Callable, Optional
 
 os.environ.setdefault("OTEL_SDK_DISABLED", "true")
 
 from strands import Agent
 from strands.models import BedrockModel
+from streamlit.delta_generator import DeltaGenerator
+from streamlit.runtime.scriptrunner import add_script_run_ctx, get_script_run_ctx
 
 from ..agents.complaints_agent import complaints_agent, get_model_config
 from ..agents.supervisor_agent import _build_system_prompt
@@ -19,6 +21,8 @@ from ..utils.json_parser import (
     extract_complaint_response,
     extract_from_tool_results,
 )
+from .layout import AGENT_LABELS
+from .evaluation import format_streaming_content
 
 
 class StreamingCallbackHandler:
@@ -69,6 +73,162 @@ class StreamingCallbackHandler:
             pass
 
 
+class SplitPanelStreamingHandler:
+    """Callback handler for streaming to the evaluation panel.
+    
+    This handler extends the streaming functionality to work with the split
+    panel layout, rendering tokens and agent changes directly to the
+    evaluation panel container with side-by-side agent columns.
+    """
+    
+    def __init__(
+        self,
+        evaluation_container: DeltaGenerator,
+        on_token: Optional[Callable[[str], None]] = None,
+        on_agent_change: Optional[Callable[[str], None]] = None
+    ):
+        """Initialize the split panel streaming handler.
+        
+        Args:
+            evaluation_container: The Streamlit container for the evaluation panel
+            on_token: Optional callback invoked when a token is received
+            on_agent_change: Optional callback invoked when the active agent changes
+        """
+        self.evaluation_container = evaluation_container
+        self.on_token = on_token
+        self.on_agent_change = on_agent_change
+        self.supervisor_content = ""
+        self.complaints_content = ""
+        self.current_agent = "supervisor"
+        self._is_streaming = True
+        self._supervisor_placeholder = None
+        self._complaints_placeholder = None
+        self._notified_supervisor = False
+        self._notified_complaints = False
+        self.tool_count = 0
+        self.previous_tool_use = None
+        self._script_run_ctx = None
+        self._complaints_column = None
+    
+    def get_complaints_column(self) -> Optional[DeltaGenerator]:
+        """Get the complaints column container for rendering classification results."""
+        return self._complaints_column
+    
+    def initialize_placeholders(self) -> None:
+        """Initialize Streamlit placeholders for dynamic content updates."""
+        import streamlit as st
+        self._script_run_ctx = get_script_run_ctx()
+        with self.evaluation_container:
+            st.markdown(AGENT_LABELS["supervisor"])
+            self._supervisor_placeholder = st.empty()
+            st.markdown("---")
+            st.markdown(AGENT_LABELS["complaints"])
+            self._complaints_placeholder = st.empty()
+            self._complaints_placeholder.markdown("*Waiting for classification...*")
+            self._complaints_column = self.evaluation_container
+    
+    def _ensure_context(self) -> None:
+        """Ensure the Streamlit script run context is set for the current thread."""
+        if self._script_run_ctx is not None:
+            add_script_run_ctx(ctx=self._script_run_ctx)
+    
+    def _update_content_display(self) -> None:
+        """Update the appropriate placeholder with current streaming content."""
+        self._ensure_context()
+        if self.current_agent == "supervisor" and self._supervisor_placeholder is not None:
+            formatted = format_streaming_content(self.supervisor_content, self._is_streaming)
+            self._supervisor_placeholder.markdown(formatted)
+        elif self.current_agent == "complaints" and self._complaints_placeholder is not None:
+            formatted = format_streaming_content(self.complaints_content, self._is_streaming)
+            self._complaints_placeholder.markdown(formatted)
+    
+    def handle_token(self, token: str) -> None:
+        """Handle a streaming token.
+        
+        Args:
+            token: The token string received from the agent
+        """
+        if self.current_agent == "supervisor":
+            self.supervisor_content += token
+        else:
+            self.complaints_content += token
+        self._update_content_display()
+        if self.on_token:
+            self.on_token(token)
+    
+    def handle_agent_change(self, agent_name: str) -> None:
+        """Handle an agent change event.
+        
+        Args:
+            agent_name: The new agent identifier
+        """
+        if agent_name != self.current_agent:
+            self.current_agent = agent_name
+            if agent_name == "complaints" and self._complaints_placeholder is not None:
+                self._ensure_context()
+                self._complaints_placeholder.markdown("")
+            if self.on_agent_change:
+                self.on_agent_change(agent_name)
+    
+    def finalize(self) -> str:
+        """Finalize streaming and return the accumulated supervisor content."""
+        self._is_streaming = False
+        self._ensure_context()
+        if self._supervisor_placeholder is not None:
+            self._supervisor_placeholder.markdown(self.supervisor_content)
+        if self._complaints_placeholder is not None:
+            if self.complaints_content:
+                self._complaints_placeholder.markdown(self.complaints_content)
+            else:
+                self._complaints_placeholder.markdown("*No complaint processing needed*")
+        return self.supervisor_content
+    
+    def get_streaming_content(self) -> str:
+        """Get the current accumulated streaming content."""
+        return self.supervisor_content
+    
+    def is_streaming(self) -> bool:
+        """Check if streaming is currently active.
+        
+        Returns:
+            True if streaming is in progress, False otherwise
+        """
+        return self._is_streaming
+    
+    def __call__(self, **kwargs: Any) -> None:
+        """Handle streaming callbacks from the agent.
+        
+        This method is called by the Strands agent during streaming.
+        It processes tokens and agent change events.
+        """
+        data = kwargs.get("data")
+        complete = kwargs.get("complete", False)
+        current_tool_use = kwargs.get("current_tool_use")
+        
+        if current_tool_use is not None:
+            if current_tool_use != self.previous_tool_use:
+                self.tool_count += 1
+                self.previous_tool_use = current_tool_use
+                
+                tool_name = None
+                if isinstance(current_tool_use, dict):
+                    tool_name = current_tool_use.get("name")
+                
+                if tool_name == "complaints_agent":
+                    if self.current_agent != "complaints":
+                        if not self._notified_complaints:
+                            self.handle_agent_change("complaints")
+                            self._notified_complaints = True
+        
+        if data and isinstance(data, str):
+            if not self._notified_supervisor and self.current_agent == "supervisor":
+                self._notified_supervisor = True
+            self.handle_token(data)
+        
+        if complete:
+            self.finalize()
+
+
 class StreamingSupervisorAgent:
     """Wrapper for SupervisorAgent that provides streaming capabilities."""
     
@@ -112,17 +272,17 @@ class StreamingSupervisorAgent:
         )
         agent = self._create_agent_with_streaming(callback_handler)
         
-        prompt = f"""Analyze the following customer call transcript and classify it as either a complaint or non-complaint.
+        prompt = f"""Analyze the following customer call transcript and classify the nature of the interaction.
 
 TRANSCRIPT:
 {transcript}
 
 Instructions:
-1. Check if the transcript contains any complaint keywords or negative sentiment indicators
+1. Read the transcript and determine what type of interaction this is
 2. Provide your classification as JSON
 3. If this is a complaint, you MUST call the complaints_agent tool with the complaint data
 
-Remember to respond with a JSON object containing classification, matched_criteria, and reasoning."""
+Respond with a JSON object containing classification, matched_criteria, and reasoning."""
 
         agent(prompt)
         

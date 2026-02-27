@@ -1,7 +1,7 @@
 """Streamlit web interface for the complaints agent system.
 
 This module provides the main Streamlit application for interacting with
-the complaints agent system through a chat-like interface.
+the complaints agent system through a split-panel UI with file upload.
 """
 
 import os
@@ -11,196 +11,239 @@ import streamlit as st
 from streamlit.runtime.scriptrunner import add_script_run_ctx, get_script_run_ctx
 
 from complaints_agent.config.loader import ConfigurationLoader, ConfigurationError
-from complaints_agent.models import AgentResponse
-from .models import ChatMessage
+from .layout import PanelLayout
+from .conversation import ConversationRenderer
+from .evaluation import EvaluationRenderer
+from .actions import ActionsRenderer
+from .approval import render_approval_gate, render_approval_dismissed
 from .session import (
     initialize_session_state,
     get_messages,
     add_message,
     clear_chat_history,
+    is_valid_transcript,
 )
-from .streaming import StreamingSupervisorAgent
-from .validation import is_valid_transcript
+from .streaming import StreamingSupervisorAgent, SplitPanelStreamingHandler
+from .mock_conversation import SAMPLE_CONVERSATIONS, ConversationSimulator
 
 
-SEVERITY_COLORS = {
-    "critical": "#dc3545",
-    "high": "#fd7e14",
-    "medium": "#ffc107",
-    "low": "#28a745",
-}
+def render_live_conversation(
+    conversation_idx: int,
+    conversation_container,
+    evaluation_container,
+    actions_container,
+) -> None:
+    """Play a mock conversation and then analyze it."""
+    sample = SAMPLE_CONVERSATIONS[conversation_idx]
 
-AGENT_LABELS = {
-    "supervisor": "🔍 **Supervisor Agent**",
-    "complaints": "📋 **Complaints Agent**",
-}
+    turn_placeholder = conversation_container.empty()
+    accumulated_turns = []
 
+    def on_turn(turn, index):
+        accumulated_turns.append(turn)
+        lines = []
+        for t in accumulated_turns:
+            if t.speaker == "Agent":
+                lines.append(
+                    f'<div style="padding: 0.3rem 0;">'
+                    f'<span style="color: #1976d2; font-weight: 600;">🎧 Agent:</span> {t.message}</div>'
+                )
+            else:
+                lines.append(
+                    f'<div style="padding: 0.3rem 0;">'
+                    f'<span style="color: #28a745; font-weight: 600;">👤 Customer:</span> {t.message}</div>'
+                )
 
-def display_complaint_details(response: AgentResponse) -> None:
-    """Display complaint details in an expandable section.
-    
-    Args:
-        response: The AgentResponse containing complaint information
-    """
-    if not response.complaint_response:
-        return
-    
-    cr = response.complaint_response
-    
-    with st.expander("📋 Complaint Details", expanded=True):
-        severity_color = SEVERITY_COLORS.get(cr.severity.lower(), "#6c757d")
-        st.markdown(
-            f"**Severity:** <span style='color: {severity_color}; "
-            f"font-weight: bold;'>{cr.severity.upper()}</span>",
-            unsafe_allow_html=True
+        turn_placeholder.markdown(
+            f'<div style="background-color: var(--secondary-background-color); '
+            f'border-left: 4px solid #1976d2; padding: 1rem; margin: 0.5rem 0; '
+            f'border-radius: 0 8px 8px 0;">{"".join(lines)}</div>',
+            unsafe_allow_html=True,
         )
-        
-        st.markdown(f"**Category:** {cr.category}")
-        
-        if cr.actions_taken:
-            st.markdown("**Actions Taken:**")
-            for action in cr.actions_taken:
-                st.markdown(f"- {action}")
-        
-        if cr.next_steps:
-            st.markdown("**Next Steps:**")
-            for step in cr.next_steps:
-                st.markdown(f"- {step}")
+
+    simulator = ConversationSimulator(sample, on_turn, min_delay=1.0, max_delay=3.0)
+    transcript = simulator.play_all()
+
+    turn_placeholder.empty()
+    handle_transcript(transcript, conversation_container, evaluation_container, actions_container)
 
 
-def display_agent_response(response: AgentResponse) -> None:
-    """Display structured agent response with complaint details.
-    
-    Args:
-        response: The AgentResponse from the supervisor agent
-    """
-    if response.is_complaint:
-        st.markdown("🚨 **Classification: COMPLAINT**")
-        
-        if response.complaint and response.complaint.matched_criteria:
-            st.markdown("**Matched Criteria:**")
-            for criteria in response.complaint.matched_criteria:
-                st.markdown(f"- {criteria}")
-        
-        display_complaint_details(response)
-    else:
-        st.markdown("✅ **Classification: NON-COMPLAINT**")
-        st.markdown(f"**Summary:** {response.summary}")
-
-
-def display_chat_history() -> None:
-    """Render all messages from session state chat history."""
+def display_history(conversation_container, evaluation_container, actions_container) -> None:
+    """Render all messages from session state to separate panels."""
     messages = get_messages()
-    
-    for message in messages:
-        with st.chat_message(message.role):
-            st.markdown(message.content)
-            
-            if message.role == "assistant" and message.agent_response:
-                display_agent_response(message.agent_response)
+    ConversationRenderer().render_history(conversation_container, messages)
+    EvaluationRenderer().render_history(evaluation_container, messages)
+    ActionsRenderer().render_history(actions_container, messages)
 
 
-def handle_user_input(transcript: str) -> None:
-    """Process user input and invoke the streaming agent.
-    
-    Args:
-        transcript: The user's input transcript
-    """
-    add_message(role="user", content=transcript)
-    
-    with st.chat_message("user"):
-        st.markdown(transcript)
-    
+def handle_transcript(
+    transcript: str,
+    conversation_container,
+    evaluation_container,
+    actions_container,
+) -> None:
+    """Process a transcript through the streaming agent and queue approval if needed."""
+    user_message = add_message(role="user", content=transcript)
+    ConversationRenderer().render_transcript(conversation_container, user_message)
+
+    spinner_placeholder = conversation_container.empty()
+    spinner_placeholder.status("Analyzing transcript…", expanded=False, state="running")
+
     try:
         criteria = ConfigurationLoader.load_from_default()
         agent = StreamingSupervisorAgent(criteria)
-        
-        with st.chat_message("assistant"):
-            agent_label_placeholder = st.empty()
-            placeholder = st.empty()
-            streamed_content = []
-            current_agent_label = ["supervisor"]
-            ctx = get_script_run_ctx()
-            
-            agent_label_placeholder.markdown(AGENT_LABELS["supervisor"])
-            
-            def on_token(token: str) -> None:
-                add_script_run_ctx(ctx=ctx)
-                streamed_content.append(token)
-                placeholder.markdown("".join(streamed_content) + "▌")
-            
-            def on_agent_change(agent_name: str) -> None:
-                add_script_run_ctx(ctx=ctx)
-                if agent_name != current_agent_label[0]:
-                    current_agent_label[0] = agent_name
-                    if agent_name in AGENT_LABELS:
-                        streamed_content.append(f"\n\n---\n\n{AGENT_LABELS[agent_name]}\n\n")
-                        placeholder.markdown("".join(streamed_content))
-            
-            response = agent.process_transcript_streaming(transcript, on_token, on_agent_change)
-            
-            final_content = "".join(streamed_content) if streamed_content else response.summary
-            placeholder.markdown(final_content)
-            
-            display_agent_response(response)
-            
+
+        ctx = get_script_run_ctx()
+
+        def on_token(token: str) -> None:
+            add_script_run_ctx(ctx=ctx)
+
+        def on_agent_change(agent_name: str) -> None:
+            add_script_run_ctx(ctx=ctx)
+
+        streaming_handler = SplitPanelStreamingHandler(
+            evaluation_container=evaluation_container,
+            on_token=on_token,
+            on_agent_change=on_agent_change,
+        )
+        streaming_handler.initialize_placeholders()
+
+        response = agent.process_transcript_streaming(
+            transcript,
+            streaming_handler.handle_token,
+            streaming_handler.handle_agent_change,
+        )
+
+        final_content = streaming_handler.finalize() or response.summary
+        spinner_placeholder.empty()
+        complaints_raw = streaming_handler.complaints_content
+
+        complaints_column = streaming_handler.get_complaints_column()
+        if complaints_column:
+            EvaluationRenderer().render_classification_result(complaints_column, response)
+
+        if response.is_complaint:
             add_message(
                 role="assistant",
                 content=final_content,
-                agent_response=response
+                agent_response=response,
+                actions_approved=False,
+                complaints_content=complaints_raw,
             )
-    
+            st.session_state["pending_approval"] = "waiting"
+            st.session_state["pending_approval_response"] = response
+            st.rerun()
+        else:
+            ActionsRenderer().render_actions_streaming(actions_container, response)
+            add_message(
+                role="assistant",
+                content=final_content,
+                agent_response=response,
+                complaints_content=complaints_raw,
+            )
+
     except ConfigurationError as e:
-        st.error(f"Configuration error: {e}")
+        spinner_placeholder.empty()
+        with evaluation_container:
+            st.error(f"Configuration error: {e}")
     except Exception as e:
-        st.error(f"An error occurred while processing your request: {e}")
+        spinner_placeholder.empty()
+        import traceback
+        with evaluation_container:
+            st.error(f"An error occurred while processing your request: {e}")
+            with st.expander("Error Details"):
+                st.code(traceback.format_exc(), language="python")
+
+
+def _handle_pending_approval(actions_container) -> None:
+    """Render the approval gate or process an approval decision."""
+    approval_state = st.session_state.get("pending_approval")
+    pending_response = st.session_state.get("pending_approval_response")
+
+    if not pending_response:
+        return
+
+    if approval_state == "waiting":
+        render_approval_gate(actions_container, pending_response)
+
+    elif approval_state == "approved":
+        messages = get_messages()
+        for msg in reversed(messages):
+            if msg.role == "assistant" and not msg.actions_approved and msg.agent_response is pending_response:
+                msg.actions_approved = True
+                break
+        ActionsRenderer().render_actions_streaming(actions_container, pending_response)
+        st.session_state.pop("pending_approval", None)
+        st.session_state.pop("pending_approval_response", None)
+
+    elif approval_state == "dismissed":
+        render_approval_dismissed(actions_container)
+        st.session_state.pop("pending_approval", None)
+        st.session_state.pop("pending_approval_response", None)
 
 
 def main() -> None:
     """Main entry point for the Streamlit application."""
-    st.set_page_config(
-        page_title="Complaints Agent",
-        page_icon="📞",
-        layout="wide"
-    )
-    
+    st.set_page_config(page_title="Complaints Analysis", page_icon="📞", layout="wide")
+
     st.title("📞 Complaints Agent")
     st.markdown(
-        "Submit customer call transcripts to analyze and classify them. "
-        "The system will identify complaints and provide severity assessment, "
-        "categorization, and recommended actions."
+        "Upload a customer call transcript or select a demo conversation to analyze. "
+        "The system will classify the interaction and provide routing, severity assessment, "
+        "and recommended actions."
     )
-    
+
     initialize_session_state()
-    
+
     with st.sidebar:
         st.header("Options")
-        if st.button("🗑️ Clear Chat History"):
+        if st.button("🗑️ Clear History"):
             clear_chat_history()
             st.rerun()
-        
+
         st.divider()
-        st.header("Sample Transcripts")
-        
-        complaint_sample = """Customer: I've been trying to get a refund for three weeks now and nobody is helping me. This is absolutely ridiculous! I was charged twice for the same transaction and your customer service has been completely unhelpful. I want to speak to a manager immediately."""
-        
-        normal_sample = """Customer: Hi, I'd like to check my account balance and see if my recent deposit has cleared. Also, could you tell me what the current interest rate is on savings accounts?"""
-        
-        st.markdown("**Complaint Example:**")
-        st.code(complaint_sample, language=None)
-        
-        st.markdown("**Normal Question:**")
-        st.code(normal_sample, language=None)
-    
-    display_chat_history()
-    
-    transcript = st.chat_input("Enter a customer call transcript...")
-    
-    if transcript:
+
+        st.header("📄 Upload Transcript")
+        uploaded_file = st.file_uploader(
+            "Upload a .txt file containing a call transcript",
+            type=["txt"],
+            key="transcript_upload",
+        )
+        if uploaded_file is not None:
+            if "last_uploaded_file" not in st.session_state or st.session_state["last_uploaded_file"] != uploaded_file.name:
+                st.session_state["last_uploaded_file"] = uploaded_file.name
+                st.session_state["pending_transcript"] = uploaded_file.read().decode("utf-8")
+                st.rerun()
+
+        st.divider()
+
+        st.header("🎭 Demo Conversations")
+        st.markdown("Select a sample conversation:")
+
+        for idx, sample in enumerate(SAMPLE_CONVERSATIONS):
+            icon = "🚨" if "complaint" in sample.name.lower() or "dispute" in sample.name.lower() else "💬"
+            if st.button(f"{icon} {sample.name}", key=f"demo_{idx}", use_container_width=True):
+                st.session_state["pending_demo"] = idx
+                st.rerun()
+
+    layout = PanelLayout()
+    conversation_container, evaluation_container, actions_container = layout.create_layout()
+
+    display_history(conversation_container, evaluation_container, actions_container)
+
+    if "pending_approval" in st.session_state:
+        _handle_pending_approval(actions_container)
+
+    if "pending_transcript" in st.session_state:
+        transcript = st.session_state.pop("pending_transcript")
         if is_valid_transcript(transcript):
-            handle_user_input(transcript)
+            handle_transcript(transcript, conversation_container, evaluation_container, actions_container)
         else:
-            st.warning("Please enter a valid transcript (non-empty text).")
+            st.warning("Uploaded file was empty or contained only whitespace.")
+
+    if "pending_demo" in st.session_state:
+        demo_idx = st.session_state.pop("pending_demo")
+        render_live_conversation(demo_idx, conversation_container, evaluation_container, actions_container)
 
 
 if __name__ == "__main__":

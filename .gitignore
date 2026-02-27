@@ -14,9 +14,13 @@ build/
 # CDK
 cdk.out/
 
-# AgentCore build artifacts
+# AgentCore
+.bedrock_agentcore.yaml
 .bedrock_agentcore/agent/dependencies.zip
 .bedrock_agentcore/agent/dependencies.hash
+
+# Kiro
+.kiro/
 
 # IDE
 .vscode/
