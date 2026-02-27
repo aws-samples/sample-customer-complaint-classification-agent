@@ -112,13 +112,6 @@ After deployment, the stacks output:
 - **Environment**: Deployment environment name
 - **AgentEndpoint** (MCP stack only): Placeholder endpoint URL
 
-## Testing
-
-```bash
-python3 -m pytest tests/
-```
-
-The test suite includes property-based tests using Hypothesis to verify correctness properties of the classification and response handling logic.
 
 ## Project Structure
 
@@ -131,8 +124,7 @@ The test suite includes property-based tests using Hypothesis to verify correctn
 │   ├── models/              # Data models
 │   ├── ui/                  # Streamlit UI components
 │   └── utils/               # JSON parsing utilities
-├── infra/                   # CDK infrastructure
-└── tests/                   # Unit and property-based tests
+└── infra/                   # CDK infrastructure
 ```
 
 ## License
