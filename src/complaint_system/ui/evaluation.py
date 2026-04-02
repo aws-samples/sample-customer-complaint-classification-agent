@@ -10,7 +10,7 @@ from typing import List
 import streamlit as st
 from streamlit.delta_generator import DeltaGenerator
 
-from complaints_agent.models import AgentResponse
+from complaint_system.models import AgentResponse
 from .session import ChatMessage
 from .layout import AGENT_LABELS
 

@@ -4,7 +4,7 @@ import json
 import os
 from pathlib import Path
 
-from complaints_agent.models import ComplaintCriteria
+from complaint_system.models import ComplaintCriteria
 
 
 COMPLAINT_CRITERIA_ENV_VAR = "COMPLAINT_CRITERIA_PATH"

@@ -11,9 +11,9 @@ if src_path.exists() and str(src_path) not in sys.path:
 
 from bedrock_agentcore import BedrockAgentCoreApp
 
-from complaints_agent.agents import SupervisorAgent
-from complaints_agent.config import ConfigurationLoader
-from complaints_agent.config.loader import ConfigurationError
+from complaint_system.agents import SupervisorAgent
+from complaint_system.config import ConfigurationLoader
+from complaint_system.config.loader import ConfigurationError
 
 
 def get_config_path() -> Path:
@@ -31,7 +31,7 @@ def load_config():
 
 
 def apply_config_override(base_criteria, config_override: dict):
-    from complaints_agent.models import ComplaintCriteria
+    from complaint_system.models import ComplaintCriteria
     
     keywords = config_override.get("keywords", base_criteria.keywords)
     sentiment_indicators = config_override.get("sentiment_indicators", base_criteria.sentiment_indicators)

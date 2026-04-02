@@ -48,7 +48,7 @@ class ComplaintsAgentMCPStack(Stack):
             self,
             "ComplaintsAgentMCPExecutionRole",
             role_name=f"complaints-agent-mcp-execution-{self._env_name}",
-            assumed_by=iam.ServicePrincipal("agentcore.bedrock.amazonaws.com"),
+            assumed_by=iam.ServicePrincipal("bedrock-agentcore.amazonaws.com"),
             description=f"Execution role for Complaints Agent MCP Server in AgentCore ({self._env_name})",
         )
 

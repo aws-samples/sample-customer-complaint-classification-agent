@@ -3,7 +3,7 @@ requires = ["setuptools>=61.0", "wheel"]
 build-backend = "setuptools.build_meta"
 
 [project]
-name = "complaints-agent"
+name = "complaint-system"
 version = "0.1.0"
 description = "Complaints Agentic Solution using AWS Strands Agents SDK and Amazon Bedrock"
 readme = "README.md"
@@ -30,28 +30,13 @@ dependencies = [
 ]
 
 [project.optional-dependencies]
-dev = [
-    "pytest>=7.0.0",
-    "pytest-asyncio>=0.21.0",
-    "hypothesis>=6.0.0",
-]
 infra = [
     "aws-cdk-lib>=2.100.0",
     "constructs>=10.0.0",
 ]
-demo = [
-    "flask>=3.0.0",
-]
 
 [tool.setuptools.packages.find]
-where = ["src"]
+where = ["src", "."]
+include = ["complaint_system*", "shared*"]
 
-[tool.pytest.ini_options]
-testpaths = ["tests"]
-python_files = ["test_*.py"]
-python_classes = ["Test*"]
-python_functions = ["test_*"]
-addopts = "-v"
 
-[tool.hypothesis]
-max_examples = 10

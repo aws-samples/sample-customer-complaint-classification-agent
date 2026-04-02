@@ -6,7 +6,7 @@ from typing import List, Optional
 
 import streamlit as st
 
-from complaints_agent.models import AgentResponse
+from complaint_system.models import AgentResponse
 
 
 @dataclass

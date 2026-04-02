@@ -12,7 +12,7 @@ from mcp.types import (
     TextContent,
 )
 
-from complaints_agent_mcp.agent import ComplaintsAgentLogic
+from shared.complaints.agent_logic import ComplaintsAgentLogic
 
 
 class ComplaintsAgentMCPServer:

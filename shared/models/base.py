@@ -9,14 +9,15 @@ T = TypeVar('T', bound='Serializable')
 class Serializable:
     """Mixin providing JSON serialization for dataclasses."""
 
-    def to_json(self) -> str:
+    def to_dict(self) -> dict:
+        """Convert to a plain dictionary."""
         def serialize_value(val):
             if val is None:
                 return None
             if isinstance(val, datetime):
                 return val.isoformat()
             if isinstance(val, Serializable):
-                return json.loads(val.to_json())
+                return val.to_dict()
             if isinstance(val, list):
                 return [serialize_value(item) for item in val]
             if isinstance(val, dict):
@@ -27,10 +28,15 @@ class Serializable:
         for field in fields(self):
             val = getattr(self, field.name)
             data[field.name] = serialize_value(val)
-        return json.dumps(data)
+        return data
+
+    def to_json(self) -> str:
+        """Serialize to a JSON string."""
+        return json.dumps(self.to_dict())
 
     @classmethod
     def from_json(cls: type[T], json_str: str) -> T:
+        """Deserialize from a JSON string."""
         data = json.loads(json_str)
         hints = get_type_hints(cls)
         kwargs = {}

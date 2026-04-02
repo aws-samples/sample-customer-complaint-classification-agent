@@ -5,12 +5,11 @@ the complaints agent system through a split-panel UI with file upload.
 """
 
 import os
-os.environ.setdefault("OTEL_SDK_DISABLED", "true")
 
 import streamlit as st
 from streamlit.runtime.scriptrunner import add_script_run_ctx, get_script_run_ctx
 
-from complaints_agent.config.loader import ConfigurationLoader, ConfigurationError
+from complaint_system.config.loader import ConfigurationLoader, ConfigurationError
 from .layout import PanelLayout
 from .conversation import ConversationRenderer
 from .evaluation import EvaluationRenderer
@@ -32,6 +31,7 @@ def render_live_conversation(
     conversation_container,
     evaluation_container,
     actions_container,
+    complaints_agent_endpoint: str | None = None,
 ) -> None:
     """Play a mock conversation and then analyze it."""
     sample = SAMPLE_CONVERSATIONS[conversation_idx]
@@ -65,7 +65,7 @@ def render_live_conversation(
     transcript = simulator.play_all()
 
     turn_placeholder.empty()
-    handle_transcript(transcript, conversation_container, evaluation_container, actions_container)
+    handle_transcript(transcript, conversation_container, evaluation_container, actions_container, complaints_agent_endpoint=complaints_agent_endpoint)
 
 
 def display_history(conversation_container, evaluation_container, actions_container) -> None:
@@ -81,6 +81,7 @@ def handle_transcript(
     conversation_container,
     evaluation_container,
     actions_container,
+    complaints_agent_endpoint: str | None = None,
 ) -> None:
     """Process a transcript through the streaming agent and queue approval if needed."""
     user_message = add_message(role="user", content=transcript)
@@ -91,7 +92,7 @@ def handle_transcript(
 
     try:
         criteria = ConfigurationLoader.load_from_default()
-        agent = StreamingSupervisorAgent(criteria)
+        agent = StreamingSupervisorAgent(criteria, complaints_agent_endpoint=complaints_agent_endpoint)
 
         ctx = get_script_run_ctx()
 
@@ -201,10 +202,33 @@ def main() -> None:
     initialize_session_state()
 
     with st.sidebar:
-        st.header("Options")
-        if st.button("🗑️ Clear History"):
-            clear_chat_history()
-            st.rerun()
+        st.header("⚙️ Agent Mode")
+        env_endpoint = os.environ.get("COMPLAINTS_AGENT_ENDPOINT", "")
+        use_agentcore = st.toggle(
+            "Use AgentCore deployment",
+            value=bool(env_endpoint),
+            key="use_agentcore",
+        )
+        agentcore_endpoint = None
+        if use_agentcore:
+            agentcore_endpoint = st.text_input(
+                "AgentCore endpoint URL",
+                value=env_endpoint,
+                placeholder="https://your-agentcore-endpoint.amazonaws.com",
+                key="agentcore_endpoint",
+            )
+            if agentcore_endpoint:
+                st.success("🌐 AgentCore deployment")
+            else:
+                st.error("Enter an endpoint URL to connect")
+        else:
+            st.info("🖥️ Running agent locally")
+            if not env_endpoint:
+                st.caption(
+                    "💡 To use AgentCore, enable the toggle above and provide "
+                    "your endpoint URL, or set the `COMPLAINTS_AGENT_ENDPOINT` "
+                    "environment variable."
+                )
 
         st.divider()
 
@@ -231,8 +255,17 @@ def main() -> None:
                 st.session_state["pending_demo"] = idx
                 st.rerun()
 
+        st.divider()
+
+        st.header("Options")
+        if st.button("🗑️ Clear History"):
+            clear_chat_history()
+            st.rerun()
+
     layout = PanelLayout()
     conversation_container, evaluation_container, actions_container = layout.create_layout()
+
+    effective_endpoint = agentcore_endpoint if use_agentcore and agentcore_endpoint else None
 
     display_history(conversation_container, evaluation_container, actions_container)
 
@@ -242,13 +275,13 @@ def main() -> None:
     if "pending_transcript" in st.session_state:
         transcript = st.session_state.pop("pending_transcript")
         if is_valid_transcript(transcript):
-            handle_transcript(transcript, conversation_container, evaluation_container, actions_container)
+            handle_transcript(transcript, conversation_container, evaluation_container, actions_container, complaints_agent_endpoint=effective_endpoint)
         else:
             st.warning("Uploaded file was empty or contained only whitespace.")
 
     if "pending_demo" in st.session_state:
         demo_idx = st.session_state.pop("pending_demo")
-        render_live_conversation(demo_idx, conversation_container, evaluation_container, actions_container)
+        render_live_conversation(demo_idx, conversation_container, evaluation_container, actions_container, complaints_agent_endpoint=effective_endpoint)
 
 
 if __name__ == "__main__":

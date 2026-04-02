@@ -3,14 +3,16 @@ import os
 from datetime import datetime
 from typing import Any, Callable, Optional
 
-os.environ.setdefault("OTEL_SDK_DISABLED", "true")
-
 from strands import Agent
 from strands.models import BedrockModel
 from streamlit.delta_generator import DeltaGenerator
 from streamlit.runtime.scriptrunner import add_script_run_ctx, get_script_run_ctx
 
-from ..agents.complaints_agent import complaints_agent, get_model_config
+from strands.tools.mcp import MCPClient
+from mcp.client.streamable_http import streamablehttp_client
+
+from ..agents.complaints_agent import complaints_agent
+from shared.complaints.agent_logic import get_model_config
 from ..agents.supervisor_agent import _build_system_prompt
 from ..models.agent_response import AgentResponse
 from ..models.complaint import Complaint
@@ -232,8 +234,10 @@ class SplitPanelStreamingHandler:
 class StreamingSupervisorAgent:
     """Wrapper for SupervisorAgent that provides streaming capabilities."""
     
-    def __init__(self, criteria_config: ComplaintCriteria):
+    def __init__(self, criteria_config: ComplaintCriteria, complaints_agent_endpoint: Optional[str] = None):
         self.criteria = criteria_config
+        self._complaints_agent_endpoint = complaints_agent_endpoint
+        self._mcp_client: Optional[MCPClient] = None
     
     def _create_agent_with_streaming(
         self, 
@@ -245,10 +249,19 @@ class StreamingSupervisorAgent:
             temperature=temperature,
         )
         system_prompt = _build_system_prompt(self.criteria)
+
+        if self._complaints_agent_endpoint:
+            self._mcp_client = MCPClient(
+                lambda: streamablehttp_client(self._complaints_agent_endpoint)
+            )
+            tools = [self._mcp_client]
+        else:
+            tools = [complaints_agent]
+
         return Agent(
             model=bedrock_model,
             system_prompt=system_prompt,
-            tools=[complaints_agent],
+            tools=tools,
             callback_handler=callback_handler,
         )
     

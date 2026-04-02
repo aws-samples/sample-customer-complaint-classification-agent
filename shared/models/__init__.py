@@ -1,3 +1,6 @@
-from shared.models.complaint_response import ComplaintResponse
+"""Shared data models for the complaint system."""
 
-__all__ = ["ComplaintResponse"]
+from .base import Serializable
+from .complaint_response import ComplaintResponse
+
+__all__ = ["Serializable", "ComplaintResponse"]

@@ -9,9 +9,7 @@
       "cdk*.json",
       "requirements*.txt",
       "source.bat",
-      "**/__pycache__",
-      "**/.pytest_cache",
-      "tests"
+      "**/__pycache__"
     ]
   },
   "context": {

@@ -48,7 +48,7 @@ class AgentCoreDeploymentStack(Stack):
             self,
             "AgentCoreExecutionRole",
             role_name=f"complaints-agent-execution-{self._env_name}",
-            assumed_by=iam.ServicePrincipal("agentcore.bedrock.amazonaws.com"),
+            assumed_by=iam.ServicePrincipal("bedrock-agentcore.amazonaws.com"),
             description=f"Execution role for Complaints Agent in AgentCore ({self._env_name})",
         )
 

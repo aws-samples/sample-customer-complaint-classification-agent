@@ -17,12 +17,6 @@ __pycache__/
 # Kiro
 .kiro/
 
-# Hypothesis test data
-.hypothesis/
-
-# Pytest cache
-.pytest_cache/
-
 # Virtual environments
 venv/
 .venv/

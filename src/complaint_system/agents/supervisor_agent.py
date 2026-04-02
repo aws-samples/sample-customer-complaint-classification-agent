@@ -4,9 +4,6 @@ import os
 from datetime import datetime
 from typing import Optional
 
-# Breaks streamlit if not disabled
-os.environ.setdefault("OTEL_SDK_DISABLED", "true")
-
 from strands import Agent
 from strands.models import BedrockModel
 from strands.tools.mcp import MCPClient
@@ -20,7 +17,8 @@ from ..utils.json_parser import (
     extract_complaint_response,
     extract_from_tool_results,
 )
-from .complaints_agent import complaints_agent, get_model_config
+from .complaints_agent import complaints_agent
+from shared.complaints.agent_logic import get_model_config
 
 COMPLAINTS_AGENT_ENDPOINT_ENV = "COMPLAINTS_AGENT_ENDPOINT"
 

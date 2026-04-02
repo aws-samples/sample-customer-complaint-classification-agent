@@ -11,19 +11,7 @@ category, actions taken, and recommended next steps.
 import os
 os.environ.setdefault("OTEL_SDK_DISABLED", "true")
 
-import opentelemetry.context.contextvars_context as otel_ctx
-
-_original_detach = otel_ctx.ContextVarsRuntimeContext.detach
-
-def _safe_detach(self, token):
-    try:
-        _original_detach(self, token)
-    except ValueError:
-        pass
-
-otel_ctx.ContextVarsRuntimeContext.detach = _safe_detach
-
-from complaints_agent.ui.app import main
+from complaint_system.ui.app import main
 
 if __name__ == "__main__":
     main()
