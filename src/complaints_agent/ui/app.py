@@ -192,6 +192,11 @@ def main() -> None:
         "The system will classify the interaction and provide routing, severity assessment, "
         "and recommended actions."
     )
+    st.info(
+        "📌 In this demo, the \"Agent Actions\" API calls to the case management system are mocked. "
+        "In a production deployment, these calls represent your ability to implement "
+        "outbound authentication to your downstream case management system for complaints processing."
+    )
 
     initialize_session_state()
 

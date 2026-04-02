@@ -1,0 +1,23 @@
+Agent: Thank you for calling AnyBank customer service. My name is David. How can I help you today?
+
+Customer: Hi David. I'm calling about a late fee that was charged to my credit card account. I made my payment on time but it still shows a $39 late fee.
+
+Agent: I'm sorry to hear about that. Let me take a look at your account. Can you confirm the last four digits of your card?
+
+Customer: It's 8842. I submitted the payment on March 28th, which was two days before the due date. I have the confirmation email to prove it.
+
+Agent: I can see the payment here. It looks like it was received on March 30th, which is the due date. However, the system processed it the following business day, April 1st, which triggered the late fee.
+
+Customer: That's not my fault. I paid on time. Your system is the one that delayed processing it. I shouldn't be penalized for that.
+
+Agent: I understand your concern. Let me see what options are available.
+
+Customer: This has happened before and I'm getting really tired of it. I've been a loyal customer for eight years and I always pay on time. If this isn't resolved today, I'm going to file a complaint with the consumer protection bureau and close all my accounts with your bank.
+
+Agent: I completely understand your frustration, and I want to help resolve this. Let me escalate this to our billing department.
+
+Customer: I also want a written confirmation that this fee is being reversed. I don't trust verbal promises anymore because the last time I called about a similar issue, nothing was done.
+
+Agent: Absolutely, I'll make sure you receive written confirmation. Is there anything else I can help with?
+
+Customer: No, just get this sorted out. I expect a callback within 24 hours with a resolution.
