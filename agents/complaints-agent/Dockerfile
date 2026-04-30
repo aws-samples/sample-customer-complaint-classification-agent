@@ -26,4 +26,7 @@ RUN chown -R appuser:appgroup /app
 
 USER appuser
 
+HEALTHCHECK --interval=30s --timeout=5s --start-period=10s --retries=3 \
+  CMD python3 -c "from bedrock_agentcore import BedrockAgentCoreApp" || exit 1
+
 CMD ["python3", "agent.py"]

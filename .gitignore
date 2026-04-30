@@ -25,6 +25,9 @@ cdk.out/
 .idea/
 *.swp
 
+# uv
+uv.lock
+
 # Environment
 .env
 .venv/

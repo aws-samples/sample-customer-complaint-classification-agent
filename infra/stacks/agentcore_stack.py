@@ -57,13 +57,39 @@ class AgentCoreDeploymentStack(Stack):
             for model_id in self._bedrock_model_ids
         ]
 
+        base_model_arns = [
+            f"arn:aws:bedrock:*::foundation-model/{'.'.join(model_id.split('.')[1:])}"
+            for model_id in self._bedrock_model_ids
+            if model_id.count(".") >= 2
+        ]
+
+        inference_profile_arns = [
+            f"arn:aws:bedrock:{self.region}:{self.account}:inference-profile/{model_id}"
+            for model_id in self._bedrock_model_ids
+        ]
+
         bedrock_policy = iam.PolicyStatement(
             sid="BedrockInvokeModel",
             effect=iam.Effect.ALLOW,
-            actions=["bedrock:InvokeModel"],
-            resources=model_arns,
+            actions=[
+                "bedrock:InvokeModel",
+                "bedrock:InvokeModelWithResponseStream",
+            ],
+            resources=model_arns + base_model_arns + inference_profile_arns,
         )
         execution_role.add_to_policy(bedrock_policy)
+
+        ecr_policy = iam.PolicyStatement(
+            sid="ECRImageAccess",
+            effect=iam.Effect.ALLOW,
+            actions=[
+                "ecr:GetAuthorizationToken",
+                "ecr:BatchGetImage",
+                "ecr:GetDownloadUrlForLayer",
+            ],
+            resources=["*"],
+        )
+        execution_role.add_to_policy(ecr_policy)
 
         return execution_role
 
